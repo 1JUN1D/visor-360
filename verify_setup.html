@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Verificación de Configuración</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .check-item {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 5px solid #ddd;
+        }
+        .check-item.success {
+            border-left-color: #4CAF50;
+        }
+        .check-item.error {
+            border-left-color: #f44336;
+        }
+        .status {
+            float: right;
+            font-weight: bold;
+        }
+        h1 {
+            color: #333;
+        }
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <h1>Verificación de Configuración - Análisis de Fachadas</h1>
+    
+    <div id="checks">
+        <div class="check-item" id="check-tensorflow">
+            <span>TensorFlow.js cargado</span>
+            <span class="status">Verificando...</span>
+        </div>
+        
+        <div class="check-item" id="check-labels">
+            <span>Archivo label_maps.json</span>
+            <span class="status">Verificando...</span>
+        </div>
+        
+        <div class="check-item" id="check-mobilenet-tipologia">
+            <span>Modelo MobileNet - Tipología</span>
+            <span class="status">Verificando...</span>
+        </div>
+        
+        <div class="check-item" id="check-mobilenet-material">
+            <span>Modelo MobileNet - Material Fachada</span>
+            <span class="status">Verificando...</span>
+        </div>
+        
+        <div class="check-item" id="check-mobilenet-pisos">
+            <span>Modelo MobileNet - Pisos</span>
+            <span class="status">Verificando...</span>
+        </div>
+        
+        <div class="check-item" id="check-efficientnet-tipologia">
+            <span>Modelo EfficientNet - Tipología</span>
+            <span class="status">Verificando...</span>
+        </div>
+        
+        <div class="check-item" id="check-efficientnet-material">
+            <span>Modelo EfficientNet - Material Fachada</span>
+            <span class="status">Verificando...</span>
+        </div>
+        
+        <div class="check-item" id="check-efficientnet-pisos">
+            <span>Modelo EfficientNet - Pisos</span>
+            <span class="status">Verificando...</span>
+        </div>
+    </div>
+    
+    <button onclick="runChecks()">Ejecutar Verificación Nuevamente</button>
+    
+    <div id="summary" style="margin-top: 30px;"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0/dist/tf.min.js"></script>
+    
+    <script>
+        async function checkFile(url, elementId) {
+            const element = document.getElementById(elementId);
+            const statusSpan = element.querySelector('.status');
+            
+            try {
+                const response = await fetch(url);
+                if (response.ok) {
+                    element.classList.add('success');
+                    element.classList.remove('error');
+                    statusSpan.textContent = '✓ OK';
+                    statusSpan.style.color = '#4CAF50';
+                    return true;
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                element.classList.add('error');
+                element.classList.remove('success');
+                statusSpan.textContent = `✗ Error: ${error.message}`;
+                statusSpan.style.color = '#f44336';
+                return false;
+            }
+        }
+        
+        async function runChecks() {
+            let successCount = 0;
+            let totalChecks = 8;
+            
+            // Resetear estilos
+            document.querySelectorAll('.check-item').forEach(item => {
+                item.classList.remove('success', 'error');
+                item.querySelector('.status').textContent = 'Verificando...';
+                item.querySelector('.status').style.color = '#666';
+            });
+            
+            // Verificar TensorFlow.js
+            const tfElement = document.getElementById('check-tensorflow');
+            if (typeof tf !== 'undefined') {
+                tfElement.classList.add('success');
+                tfElement.querySelector('.status').textContent = `✓ v${tf.version.tfjs}`;
+                tfElement.querySelector('.status').style.color = '#4CAF50';
+                successCount++;
+            } else {
+                tfElement.classList.add('error');
+                tfElement.querySelector('.status').textContent = '✗ No cargado';
+                tfElement.querySelector('.status').style.color = '#f44336';
+            }
+            
+            // Verificar archivos
+            const checks = [
+                { url: './models/label_maps.json', id: 'check-labels' },
+                { url: './models/tfjs/modelo_mobilenet_tipologia/model.json', id: 'check-mobilenet-tipologia' },
+                { url: './models/tfjs/modelo_mobilenet_material_fachada/model.json', id: 'check-mobilenet-material' },
+                { url: './models/tfjs/modelo_mobilenet_pisos/model.json', id: 'check-mobilenet-pisos' },
+                { url: './models/tfjs/modelo_efficientnet_tipologia/model.json', id: 'check-efficientnet-tipologia' },
+                { url: './models/tfjs/modelo_efficientnet_material_fachada/model.json', id: 'check-efficientnet-material' },
+                { url: './models/tfjs/modelo_efficientnet_pisos/model.json', id: 'check-efficientnet-pisos' }
+            ];
+            
+            for (const check of checks) {
+                const success = await checkFile(check.url, check.id);
+                if (success) successCount++;
+            }
+            
+            // Mostrar resumen
+            const summary = document.getElementById('summary');
+            const percentage = (successCount / totalChecks * 100).toFixed(0);
+            
+            if (successCount === totalChecks) {
+                summary.innerHTML = `
+                    <div style="background: #4CAF50; color: white; padding: 20px; border-radius: 5px; text-align: center;">
+                        <h2 style="margin: 0;">¡Todo está configurado correctamente!</h2>
+                        <p style="margin: 10px 0 0 0;">Verificación completa: ${successCount}/${totalChecks} (${percentage}%)</p>
+                        <p style="margin: 10px 0 0 0;">Puedes proceder a usar el sistema de análisis.</p>
+                    </div>
+                `;
+            } else {
+                summary.innerHTML = `
+                    <div style="background: #f44336; color: white; padding: 20px; border-radius: 5px;">
+                        <h2 style="margin: 0;">Hay problemas en la configuración</h2>
+                        <p style="margin: 10px 0;">Verificación: ${successCount}/${totalChecks} (${percentage}%)</p>
+                        <p style="margin: 10px 0;">Revisa los siguientes puntos:</p>
+                        <ul style="margin: 10px 0;">
+                            <li>Asegúrate de que la estructura de carpetas sea correcta</li>
+                            <li>Verifica que todos los archivos de modelo estén en su lugar</li>
+                            <li>Comprueba que estés ejecutando desde un servidor web (no file://)</li>
+                        </ul>
+                    </div>
+                `;
+            }
+        }
+        
+        // Ejecutar verificación al cargar la página
+        window.addEventListener('load', runChecks);
+    </script>
+</body>
+</html>

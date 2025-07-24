@@ -1,0 +1,19 @@
+from google.colab import files
+from PIL import Image
+import os
+from IPython.display import display
+
+# Paso 1: Subir imagen manualmente
+uploaded = files.upload()
+
+# Paso 2: Tomar la ruta del archivo subido
+for filename in uploaded.keys():
+    test_image_path = filename  # Ruta de la imagen
+
+    # Mostrar la imagen
+    img = Image.open(test_image_path)
+    display(img)
+
+# Paso 3: Predecir
+label_maps = generar_label_maps("model_trainin.csv")
+_ = predecir_todo(test_image_path, label_maps)

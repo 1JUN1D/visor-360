@@ -1,0 +1,96 @@
+# 🔍 Bloque de Predicción -------------------------------------------------------
+
+import torch
+import torchvision.transforms as transforms
+from PIL import Image
+import pandas as pd
+import os
+from IPython.display import display
+
+# --- CONFIGURACIÓN ---
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+MODELOS = ['resnet50', 'vgg16', 'inception', 'densenet', 'efficientnet', 'mobilenet', 'shufflenet']
+TAREAS = ['tipologia', 'material_fachada', 'pisos']
+
+# --- TRANSFORMACIÓN (misma que en entrenamiento) ---
+transform = transforms.Compose([
+    transforms.Resize((224, 224)),
+    transforms.ToTensor(),
+    transforms.Normalize(
+        mean=[0.485, 0.456, 0.406],
+        std=[0.229, 0.224, 0.225]
+    )
+])
+
+# --- CARGA DE MODELO ---
+def get_model(name, num_classes):
+    import torchvision.models as models
+    import torch.nn as nn
+
+    if name == 'resnet50':
+        model = models.resnet50(pretrained=False)
+        model.fc = nn.Linear(model.fc.in_features, num_classes)
+    elif name == 'vgg16':
+        model = models.vgg16(pretrained=False)
+        model.classifier[6] = nn.Linear(4096, num_classes)
+    elif name == 'inception':
+        model = models.inception_v3(pretrained=False, aux_logits=False)
+        model.fc = nn.Linear(model.fc.in_features, num_classes)
+    elif name == 'densenet':
+        model = models.densenet121(pretrained=False)
+        model.classifier = nn.Linear(model.classifier.in_features, num_classes)
+    elif name == 'efficientnet':
+        model = models.efficientnet_b0(pretrained=False)
+        model.classifier[1] = nn.Linear(model.classifier[1].in_features, num_classes)
+    elif name == 'mobilenet':
+        model = models.mobilenet_v2(pretrained=False)
+        model.classifier[1] = nn.Linear(model.classifier[1].in_features, num_classes)
+    elif name == 'shufflenet':
+        model = models.shufflenet_v2_x1_0(pretrained=False)
+        model.fc = nn.Linear(model.fc.in_features, num_classes)
+    else:
+        raise ValueError("Modelo no soportado")
+
+    return model.to(DEVICE)
+
+# --- MAPAS DE CLASES ---
+def generar_label_maps(csv_path):
+    df = pd.read_csv(csv_path, sep=';')
+    maps = {}
+    for col in TAREAS:
+        cat = pd.Categorical(df[col])
+        maps[col] = dict(enumerate(cat.categories))
+    return maps
+
+# --- PREDICCIÓN PARA UNA IMAGEN ---
+def predecir_todo(image_path, label_maps, modelos=MODELOS):
+    resultados = []
+
+    for modelo_arch in modelos:
+        fila = {"modelo": modelo_arch}
+        for tarea in TAREAS:
+            model_path = f"modelo_{modelo_arch}_{tarea}.pt"
+            if not os.path.exists(model_path):
+                fila[tarea] = "❌ No encontrado"
+                continue
+
+            num_classes = len(label_maps[tarea])
+            model = get_model(modelo_arch, num_classes)
+            model.load_state_dict(torch.load(model_path, map_location=DEVICE))
+            model.eval()
+
+            image = Image.open(image_path).convert("RGB")
+            tensor = transform(image).unsqueeze(0).to(DEVICE)
+
+            with torch.no_grad():
+                salida = model(tensor)
+                _, pred = torch.max(salida, 1)
+
+            etiqueta = label_maps[tarea].get(pred.item(), f"Clase {pred.item()}")
+            fila[tarea] = etiqueta
+
+        resultados.append(fila)
+
+    resultados_df = pd.DataFrame(resultados)
+    display(resultados_df.style.set_caption("📊 Predicción por Modelo"))
+    return resultados_df

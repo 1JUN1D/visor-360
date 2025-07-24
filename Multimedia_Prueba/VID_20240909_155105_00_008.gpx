@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx xmlns="http://www.topografix.com/GPX/1/1" version="1.1" creator="Insta360 Studio">
+  <metadata>
+    <link href="https://www.insta360.com">
+      <text>Insta360 GPS Dashboard</text>
+    </link>
+    <time>2025-01-09T20:39:23Z</time>
+    <bounds maxlon="76.52999217" minlon="76.529983259563934" maxlat="3.3756183051521256" minlat="3.37558179"/>
+  </metadata>
+  <trk>
+    <name>Insta360 GPS Data</name>
+    <trkseg>
+      <trkpt lat="3.37558179" lon="-76.52999217">
+        <ele>999.277</ele>
+        <time>2024-09-09T20:50:50Z</time>
+      </trkpt>
+      <trkpt lat="3.3755817910042247" lon="-76.529992169691766">
+        <ele>999.276</ele>
+        <time>2024-09-09T20:51:23Z</time>
+      </trkpt>
+      <trkpt lat="3.3755818331314682" lon="-76.529992161238965">
+        <ele>999.272</ele>
+        <time>2024-09-09T20:51:24Z</time>
+      </trkpt>
+      <trkpt lat="3.3755821564368911" lon="-76.52999209659832">
+        <ele>999.246</ele>
+        <time>2024-09-09T20:51:25Z</time>
+      </trkpt>
+      <trkpt lat="3.3755833421394041" lon="-76.529991865965258">
+        <ele>999.162</ele>
+        <time>2024-09-09T20:51:26Z</time>
+      </trkpt>
+      <trkpt lat="3.3755863342067207" lon="-76.529991242216937">
+        <ele>998.975</ele>
+        <time>2024-09-09T20:51:27Z</time>
+      </trkpt>
+      <trkpt lat="3.3755922928340629" lon="-76.529989836278531">
+        <ele>998.585</ele>
+        <time>2024-09-09T20:51:28Z</time>
+      </trkpt>
+      <trkpt lat="3.375603063531214" lon="-76.529987196195137">
+        <ele>997.969</ele>
+        <time>2024-09-09T20:51:30Z</time>
+      </trkpt>
+      <trkpt lat="3.3756183051521256" lon="-76.529983259563934">
+        <ele>997.186</ele>
+        <time>2024-09-09T20:51:31Z</time>
+      </trkpt>
+    </trkseg>
+  </trk>
+</gpx>

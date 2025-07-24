@@ -1,0 +1,173 @@
+consec;id;tipologia;material_fachada;pisos
+1;1_2;Tipo 3 menos;Acabado sencillo;1
+2;1_3;Tipo 3 menos;Sin acabado;2
+3;10_2;Tipo 3 menos;Acabado sencillo;1
+4;10_3;Tipo 3 menos;Acabado sencillo;1
+5;100_2;Tipo 3 menos;Sin acabado;2
+6;100_3;Tipo 2;Sin acabado;1
+7;11_2;Tipo 2;Sin acabado;1
+8;11_3;Tipo 3 menos;Acabado sencillo;1
+9;12_1;Tipo 3 menos;Sin acabado;3
+10;12_3;Tipo 3 menos;Acabado sencillo;1
+11;13_2;Tipo 2;Sin acabado;1
+12;14_2;Tipo 3 menos;Sin acabado;2
+13;14_3;Conservacion Residencial Tipo 1;Acabado medio;1
+14;15_2;Tipo 2;Acabado medio;1
+15;15_3;Tipo 3 menos;Acabado sencillo;1
+16;16_2;Tipo 2;Sin acabado;2
+17;16_3;Tipo 4 menos;Acabado sencillo;1
+18;17_2;Tipo 3 menos;Sin acabado;1
+19;17_3;Tipo 3 menos;Acabado sencillo;1
+20;18_2;Conservacion Residencial Tipo 1;Acabado sencillo;1
+21;18_3;Tipo 2;Acabado sencillo;1
+22;19_3;Comercial Basico 2;Acabado sencillo;2
+23;2_2;Tipo 3 menos;Acabado sencillo;2
+24;2_3;Tipo 4 menos;Acabado sencillo;3
+33;24_3;Institucional Religioso Tipo 1;Acabado medio;2
+25;20_1;Institucional Religioso Tipo 2;Acabado medio;3
+27;21_3;Tipo 4;Acabado medio;3
+28;22_2;Comercial Basico 2;Acabado sencillo;1
+29;22_3;Tipo 3 menos;Acabado sencillo;2
+30;23_2;Tipo 3 menos;Sin acabado;3
+31;23_3;Comercial Basico 2;Acabado sencillo;1
+32;24_2;Comercial Basico 2;Acabado sencillo;1
+26;20_2;Institucional Religioso Tipo 2;Acabado medio;1
+34;25_2;Comercial Basico 2;Acabado medio;1
+35;25_3;Tipo 2;Acabado medio;1
+36;26_2;Comercial Basico 2;Acabado sencillo;1
+37;26_3;Institucional Tipo 1;Acabado medio;1
+38;27_2;Tipo 3 menos;Acabado sencillo;2
+39;27_3;Tipo 4;Acabado sencillo;3
+40;28_2;Tipo 2;Acabado sencillo;1
+41;28_3;Tipo 3 mas;Acabado sencillo;1
+42;29_3;Comercial Intermedio 1;Acabado sencillo;2
+43;3_2;Tipo 3 menos;Acabado sencillo;1
+44;3_3;Tipo 3 mas;Acabado sencillo;1
+45;30_2;Tipo 3 mas;Acabado sencillo;3
+46;30_3;Comercial Basico 2;Acabado sencillo;2
+47;31_2;Institucional Tipo 1;Acabado medio;1
+48;31_3;Conservacion Residencial Tipo 1;Acabado sencillo;1
+49;32_2;Tipo 2;Sin acabado;1
+50;32_3;Tipo 2;Sin acabado;1
+51;33_2;Tipo 4 menos;Acabado sencillo;1
+52;33_3;Tipo 4 menos;Acabado sencillo;1
+53;34_2;Tipo 4 menos;Acabado medio;1
+54;34_3;Tipo 3 menos;Sin acabado;2
+55;35_2;Comercial Basico 2;Acabado sencillo;1
+56;35_3;Tipo 3 menos;Acabado sencillo;1
+57;36_2;Comercial Basico 2;Acabado sencillo;1
+58;36_3;Institucional Tipo 1;Sin acabado;1
+59;37_2;Industrial Liviano 1;Sin acabado;1
+60;37_3;Conservacion Residencial Tipo 1;Sin acabado;2
+61;38_2;Tipo 4 menos;Acabado sencillo;1
+62;38_3;Tipo 3 menos;Sin acabado;2
+63;39_2;Tipo 3 menos;Acabado sencillo;1
+64;39_3;Institucional Tipo 1;Acabado sencillo;1
+65;4_2;Tipo 3 menos;Acabado sencillo;1
+66;4_3;Tipo 3 menos;Acabado sencillo;1
+67;40_2;Tipo 3 menos;Sin acabado;1
+68;40_3;Tipo 3 menos;Acabado sencillo;1
+69;41_2;Comercial Intermedio 1;Acabado medio;1
+70;41_3;Tipo 3 menos;Acabado sencillo;1
+71;42_2;Comercial Basico 2;Acabado sencillo;1
+72;42_3;Institucional Tipo 1;Acabado sencillo;1
+73;43_2;Comercial Basico 2;Acabado sencillo;1
+74;43_3;Comercial Intermedio 1;Acabado sencillo;1
+75;44_2;Tipo 3 menos;Acabado medio;1
+76;44_3;Tipo 3 menos;Acabado sencillo;1
+77;45_2;Tipo 3 mas;Acabado sencillo;2
+78;45_3;Comercial Basico 2;Acabado sencillo;1
+79;46_2;Tipo 3 menos;Acabado medio;1
+80;46_3;Institucional Tipo 1;Acabado medio;2
+81;47_2;Institucional Tipo 1;Acabado medio;2
+82;47_3;Conservacion Residencial Tipo 1;Acabado sencillo;1
+83;48_2;Tipo 2;Acabado medio;2
+84;5_3;Tipo 4;Acabado sencillo;1
+85;5_6;Institucional Religioso Tipo 2;Acabado medio;3
+86;50_2;Industrial Liviano 1;Sin acabado;1
+87;51_2;Tipo 3 menos;Acabado sencillo;2
+88;51_3;Comercial Basico 2;Acabado sencillo;1
+89;52_2;Institucional Salud 2;Acabado sencillo;2
+90;52_3;Industrial Liviano 1;Acabado medio;1
+91;53_2;Industrial Liviano 1;Acabado sencillo;1
+92;53_3;Industrial Liviano 2;Acabado medio;2
+93;54_2;Conservacion Residencial Tipo 1;Acabado sencillo;1
+94;54_3;Comercial Basico 2;Acabado sencillo;1
+95;55_2;Comercial Intermedio 1;Acabado medio;1
+96;55_3;Comercial Basico 2;Acabado sencillo;1
+97;57_2;Industrial Liviano 1;Sin acabado;1
+98;57_3;Tipo 2;Sin acabado;1
+99;58_2;Tipo 3 menos;Acabado sencillo;2
+100;58_3;Tipo 3 mas;Acabado sencillo;1
+101;59_3;Tipo 3 menos;Acabado sencillo;1
+102;6_3;Conservacion Residencial Tipo 1;Sin acabado;1
+103;60_2;Institucional Tipo 1;Sin acabado;1
+104;60_3;Tipo 2;Sin acabado;2
+105;61_2;Tipo 3 menos;Acabado sencillo;1
+106;61_3;Tipo 3 menos;Acabado sencillo;1
+107;62_3;Tipo 3 menos;Acabado sencillo;1
+108;63_3;Tipo 3 menos;Acabado sencillo;1
+109;64_2;Tipo 3 mas;Acabado sencillo;2
+110;64_3;Institucional Tipo 1;Acabado medio;3
+111;65_2;Tipo 3 menos;Acabado sencillo;1
+112;65_3;Tipo 2;Sin acabado;2
+113;66_2;Comercial Basico 2;Acabado sencillo;3
+114;66_3;Tipo 2;Sin acabado;1
+115;67_2;Tipo 3 mas;Acabado sencillo;3
+116;67_3;Comercial Basico 2;Acabado sencillo;1
+117;68_2;Comercial Basico 2;Acabado sencillo;1
+118;68_3;Comercial Basico 2;Sin acabado;2
+119;69_2;Tipo 3 mas;Acabado sencillo;2
+120;69_3;Industrial Liviano 1;Acabado sencillo;1
+121;70_3;Comercial Basico 2;Sin acabado;1
+122;71_2;Institucional Tipo 2;Acabado sencillo;1
+123;71_3;Tipo 3 menos;Acabado sencillo;1
+124;72_2;Tipo 3 menos;Acabado sencillo;1
+125;72_3;Tipo 3 menos;Acabado sencillo;1
+126;73_2;Tipo 2;Sin acabado;2
+127;73_3;Tipo 4 menos;Acabado sencillo;1
+128;74_2;Tipo 4 menos;Acabado medio;2
+129;74_3;Tipo 3 menos;Acabado medio;1
+130;75_2;Tipo 3 menos;Acabado sencillo;1
+131;75_3;Tipo 3 menos;Acabado medio;1
+132;76_3;Tipo 3 menos;Acabado sencillo;1
+133;77_2;Tipo 4 mas;Acabado medio;2
+134;77_3;Tipo 3 mas;Acabado medio;2
+135;78_2;Tipo 3 menos;Sin acabado;2
+136;79_3;Tipo 3 menos;Acabado sencillo;1
+137;8_2;Tipo 1;Sin acabado;1
+138;8_3;Tipo 3 menos;Acabado sencillo;2
+139;80_2;Tipo 3 menos;Acabado sencillo;1
+140;80_3;Tipo 3 menos;Acabado sencillo;2
+141;81_2;Tipo 3 menos;Acabado sencillo;1
+142;81_3;Conservacion Residencial Tipo 1;Acabado sencillo;1
+143;82_2;Tipo 3 menos;Sin acabado;1
+144;82_3;Tipo 3 mas;Acabado medio;2
+145;83_2;Institucional Tipo 2;Acabado sencillo;2
+146;83_3;Comercial Basico 2;Acabado sencillo;1
+147;84_2;Tipo 3 menos;Sin acabado;2
+148;85_2;Tipo 3 menos;Sin acabado;2
+149;86_2;Comercial Basico 2;Acabado sencillo;1
+150;86_3;Tipo 3 menos;Acabado medio;1
+151;87_2;Tipo 4 menos;Acabado medio;3
+152;87_3;Tipo 3 menos;Acabado sencillo;1
+153;88_2;Tipo 3 menos;Acabado sencillo;1
+154;88_3;Tipo 3 menos;Acabado sencillo;1
+155;89_2;Conservacion Residencial Tipo 1;Acabado sencillo;1
+156;9_2;Tipo 2;Sin acabado;1
+157;9_3;Tipo 3 menos;Acabado sencillo;1
+158;90_2;Tipo 3 menos;Sin acabado;2
+159;90_3;Tipo 3 menos;Acabado medio;1
+160;91_3;Tipo 3 menos;Sin acabado;2
+161;92_2;Tipo 3 menos;Sin acabado;2
+162;92_3;Industrial Liviano 1;Sin acabado;1
+163;93_2;Tipo 2;Acabado medio;1
+164;94_2;Comercial Basico 2;Acabado sencillo;2
+165;95_2;Tipo 4 menos;Acabado medio;2
+166;95_3;Tipo 3 menos;Acabado medio;1
+167;96_2;Tipo 2;Acabado medio;1
+168;96_3;Comercial Basico 2;Acabado medio;2
+169;97_2;Tipo 2;Acabado medio;1
+170;97_3;Tipo 3 menos;Acabado medio;1
+171;98_3;Tipo 3 menos;Acabado sencillo;1
+172;99_2;Tipo 3 menos;Acabado sencillo;1

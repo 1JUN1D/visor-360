@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visor 360° con Análisis de Fachadas</title>
+
+    <!-- CSS externo -->
+    <link rel="stylesheet" href="./CSS/styles.css">
+    
+    <!-- Photo Sphere Viewer core y plugins -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core@5.8.2/index.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/plan-plugin@5.8.2/index.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/video-plugin@5.8.2/index.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/markers-plugin@5.8.2/index.min.css">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+
+    <!-- EXIF Reader -->
+    <script src="https://cdn.jsdelivr.net/npm/exifreader/dist/exif-reader.min.js"></script>
+
+    <!-- TensorFlow.js para la red neuronal -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0/dist/tf.min.js"></script>
+
+</head>
+<body>
+    <!-- Pantalla de carga inicial -->
+    <div class="upload-screen" id="uploadScreen">
+        <h1 class="upload-title">Visor 360° con Análisis de Fachadas</h1>
+        <button class="upload-button">
+            Subir Video/Imagen 360°
+            <input type="file" accept="image/*,video/*,.insv" id="fileInput">
+        </button>
+        
+        <!-- Sección para cargar modelos -->
+        <div class="model-status" id="modelStatus">
+            <p>Cargando modelos de análisis...</p>
+            <div class="model-progress" id="modelProgress"></div>
+        </div>
+    </div>
+
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loader"></div>
+        <p class="loading-text">Procesando contenido...</p>
+    </div>
+
+    <div class="viewer-container" id="viewerContainer">
+        <div class="thumbnails-bar">
+            <div class="thumbnail-container" id="thumbnailContainer">
+            </div>
+            <div class="add-image-btn" id="addImageBtn">
+                <input type="file" accept="image/*,video/*,.insv" id="additionalFileInput" style="display: none;">
+            </div>
+        </div>
+
+        <div class="main-panel">
+            <div class="viewer-360">
+                <div id="viewer"></div>
+                
+                <!-- Controles para procesamiento de video -->
+                <div class="video-controls" id="videoControls" style="display: none;">
+                    <button id="startProcessing" class="process-btn">Iniciar Análisis</button>
+                    <button id="pauseProcessing" class="process-btn" disabled>Pausar</button>
+                    <label class="interval-label">
+                        Intervalo (seg): 
+                        <input type="number" id="frameInterval" value="5" min="1" max="30" class="interval-input">
+                    </label>
+                </div>
+                
+                <div id="coordinatesInput" class="coordinates-input" style="display: none;">
+                    <input type="number" id="latInput" placeholder="Latitud" step="any">
+                    <input type="number" id="lonInput" placeholder="Longitud" step="any">
+                    <button onclick="updateCoordinates()">Actualizar Ubicación</button>
+                </div>
+            
+                <div id="gpxUpload" class="gpx-upload" style="display: none;">
+                    <input type="file" id="gpxFile" accept=".gpx">
+                    <button onclick="processGpxFile()">Cargar archivo GPX</button>
+                </div>
+            </div>
+
+            <div class="analysis-panel">
+                <h2 class="analysis-title">Análisis de Fachadas</h2>
+                
+                <!-- Información del archivo actual -->
+                <div class="analysis-section">
+                    <h3>Información del Archivo</h3>
+                    <div class="analysis-data" id="fileInfo">
+                        <p>Sin archivo cargado</p>
+                    </div>
+                </div>
+
+                <!-- Estado del procesamiento -->
+                <div class="analysis-section" id="processingStatus" style="display: none;">
+                    <h3>Estado del Procesamiento</h3>
+                    <div class="analysis-data">
+                        <p>Fotogramas procesados: <span id="framesProcessed">0</span></p>
+                        <p>Tiempo del video: <span id="currentVideoTime">0:00</span></p>
+                        <p>Estado: <span id="processingState">Inactivo</span></p>
+                    </div>
+                </div>
+
+                <!-- Resultados del análisis -->
+                <div class="analysis-section">
+                    <h3>Resultados del Análisis</h3>
+                    <div class="analysis-results" id="analysisResults">
+                        <p class="no-results">No hay resultados aún. Inicie el análisis del video.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Canvas oculto para procesamiento de fotogramas -->
+    <canvas id="frameCanvas" style="display: none;"></canvas>
+
+    <!-- Scripts necesarios -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.154.0/build/three.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core@5.8.2/index.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/plan-plugin@5.8.2/index.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/video-plugin@5.8.2/index.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/markers-plugin@5.8.2/index.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/equirectangular-video-adapter@5.8.2/index.min.js"></script>
+
+    <!-- Scripts de la aplicación -->
+    <script src="./JS/neural-network.js"></script>
+    <script src="./JS/video-processor.js"></script>
+    <script src="./JS/script.js"></script>
+
+</body>
+</html>
