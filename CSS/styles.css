@@ -259,7 +259,7 @@ body {
 .video-controls {
     position: absolute;
     bottom: 80px;
-    left: 50%;
+    left: 20%;
     transform: translateX(-50%);
     background: rgba(255, 255, 255, 0.95);
     padding: 15px;
