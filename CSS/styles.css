@@ -75,11 +75,14 @@ body {
     cursor: pointer;
 }
 
+/* Actualización para la barra de progreso de modelos */
+
 /* Estado de carga de modelos */
 .model-status {
     margin-top: 2rem;
     color: white;
     display: none;
+    text-align: center;
 }
 
 .model-progress {
@@ -88,7 +91,8 @@ body {
     background: rgba(255, 255, 255, 0.2);
     border-radius: 5px;
     overflow: hidden;
-    margin-top: 10px;
+    margin: 10px auto 0;
+    position: relative;
 }
 
 .model-progress::after {
@@ -96,8 +100,9 @@ body {
     display: block;
     height: 100%;
     background: var(--success-color);
-    width: 0;
+    width: var(--progress, 0%);
     transition: width 0.5s ease;
+    border-radius: 5px;
 }
 
 /* Pantalla de Carga */
@@ -363,7 +368,7 @@ body {
 
 /* Panel de Análisis */
 .analysis-panel {
-    flex: 1;
+    flex: 2;
     background: #f8f9fa;
     padding: 20px;
     overflow-y: auto;

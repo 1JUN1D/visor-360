@@ -83,6 +83,8 @@
             <div class="analysis-panel">
                 <h2 class="analysis-title">Análisis de Fachadas</h2>
                 
+                <!-- El indicador de tipo de análisis se agregará aquí automáticamente -->
+                
                 <!-- Información del archivo actual -->
                 <div class="analysis-section">
                     <h3>Información del Archivo</h3>
@@ -115,7 +117,7 @@
     <!-- Canvas oculto para procesamiento de fotogramas -->
     <canvas id="frameCanvas" style="display: none;"></canvas>
 
-    <!-- Scripts necesarios -->
+    <!-- Scripts necesarios - ORDEN IMPORTANTE -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.154.0/build/three.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core@5.8.2/index.min.js"></script>
@@ -124,8 +126,10 @@
     <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/markers-plugin@5.8.2/index.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/equirectangular-video-adapter@5.8.2/index.min.js"></script>
 
-    <!-- Scripts de la aplicación -->
+    <!-- Scripts de la aplicación - ORDEN CRÍTICO PARA FUNCIONALIDAD COMPLETA -->
     <script src="./JS/neural-network.js"></script>
+    <script src="./JS/image-modal-viewer.js"></script>
+    <script src="./JS/enhanced-360-analyzer.js"></script>
     <script src="./JS/video-processor.js"></script>
     <script src="./JS/script.js"></script>
 

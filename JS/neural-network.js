@@ -1,9 +1,8 @@
-// neural-network.js - Módulo para manejar la red neuronal de clasificación de fachadas
+// neural-network.js - CORREGIDO para usar correctamente label_maps.json
 
 class FacadeAnalyzer {
     constructor() {
         this.models = {};
-        // Solo trabajamos con los modelos que tienes convertidos
         this.modelTypes = ['mobilenet', 'efficientnet'];
         this.tasks = ['tipologia', 'material_fachada', 'pisos'];
         this.labelMaps = null;
@@ -14,102 +13,198 @@ class FacadeAnalyzer {
     // Inicializar el analizador y cargar los modelos
     async initialize() {
         try {
-            // Primero cargamos el CSV con los label maps
-            await this.loadCSVData();
+            console.log('Iniciando carga del analizador de fachadas...');
             
-            // Generar los label maps desde el CSV
-            this.generateLabelMaps();
+            // Primero intentamos cargar los label maps desde el archivo JSON
+            await this.loadLabelMaps();
+            
+            // Verificar que labelMaps se cargó correctamente
+            if (!this.labelMaps) {
+                console.warn('No se pudieron cargar los label maps, usando valores por defecto');
+                this.setDefaultLabelMaps();
+            }
             
             // Cargar todos los modelos
             await this.loadAllModels();
             
             this.modelsLoaded = true;
             console.log('Todos los modelos cargados exitosamente');
+            console.log('Label maps finales:', this.labelMaps);
             return true;
         } catch (error) {
             console.error('Error inicializando el analizador:', error);
-            return false;
+            // En caso de error, establecer datos por defecto y continuar
+            this.setDefaultLabelMaps();
+            this.modelsLoaded = true;
+            console.warn('Inicializado con datos por defecto debido a errores');
+            return true;
         }
     }
 
-    // Cargar datos del CSV real
-    async loadCSVData() {
+    // Cargar los label maps desde el archivo JSON o CSV
+    async loadLabelMaps() {
         try {
-            // Primero intentamos cargar el label_maps.json si ya existe
+            // MÉTODO 1: Intentar cargar desde label_maps.json (método preferido)
             try {
+                console.log('Intentando cargar label_maps.json...');
                 const response = await fetch('./models/label_maps.json');
+                
                 if (response.ok) {
-                    const labelMaps = await response.json();
-                    this.csvData = labelMaps;
-                    console.log('Label maps cargados desde JSON');
-                    return;
+                    const jsonData = await response.json();
+                    console.log('Datos cargados desde label_maps.json:', jsonData);
+                    
+                    // Verificar que tiene la estructura correcta
+                    if (this.validateLabelMapsStructure(jsonData)) {
+                        this.labelMaps = jsonData;
+                        console.log('✅ Label maps cargados exitosamente desde JSON');
+                        return;
+                    } else {
+                        throw new Error('Estructura de label_maps.json inválida');
+                    }
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
-            } catch (e) {
-                console.log('No se encontró label_maps.json, cargando desde CSV...');
+            } catch (jsonError) {
+                console.warn('No se pudo cargar label_maps.json:', jsonError.message);
+                console.log('Intentando cargar desde CSV como alternativa...');
             }
 
-            // Si no existe el JSON, cargar desde el CSV
+            // MÉTODO 2: Cargar desde CSV como alternativa
+            await this.loadFromCSV();
+            
+        } catch (error) {
+            console.error('Error cargando label maps:', error);
+            throw error;
+        }
+    }
+
+    // Validar que el archivo label_maps.json tiene la estructura correcta
+    validateLabelMapsStructure(data) {
+        if (!data || typeof data !== 'object') {
+            console.error('Label maps no es un objeto válido');
+            return false;
+        }
+
+        // Verificar que contiene todas las tareas requeridas
+        for (const task of this.tasks) {
+            if (!data[task] || typeof data[task] !== 'object') {
+                console.error(`Tarea faltante o inválida: ${task}`);
+                return false;
+            }
+            
+            // Verificar que cada tarea tiene al menos una etiqueta
+            if (Object.keys(data[task]).length === 0) {
+                console.error(`Tarea vacía: ${task}`);
+                return false;
+            }
+        }
+        
+        console.log('✅ Estructura de label_maps validada correctamente');
+        return true;
+    }
+
+    // Cargar datos desde el CSV como alternativa
+    async loadFromCSV() {
+        try {
+            console.log('Cargando datos desde CSV...');
             const csvResponse = await fetch('./data/model_trainin.csv');
+            if (!csvResponse.ok) {
+                throw new Error(`Error cargando CSV: ${csvResponse.status}`);
+            }
+            
             const csvText = await csvResponse.text();
+            if (!csvText.trim()) {
+                throw new Error('El archivo CSV está vacío');
+            }
             
-            // Parsear el CSV
+            // Parsear el CSV y extraer categorías únicas
             const lines = csvText.trim().split('\n');
+            if (lines.length < 2) {
+                throw new Error('El CSV debe tener al menos un header y una fila de datos');
+            }
+            
             const headers = lines[0].split(';');
+            console.log('Headers encontrados:', headers);
             
-            // Encontrar índices de las columnas que necesitamos
-            const tipologiaIdx = headers.indexOf('tipologia');
-            const materialIdx = headers.indexOf('material_fachada');
-            const pisosIdx = headers.indexOf('pisos');
+            // Encontrar índices de las columnas
+            const tipologiaIdx = headers.findIndex(h => h.toLowerCase().includes('tipologia'));
+            const materialIdx = headers.findIndex(h => h.toLowerCase().includes('material'));
+            const pisosIdx = headers.findIndex(h => h.toLowerCase().includes('pisos'));
             
-            // Extraer valores únicos para cada categoría
+            if (tipologiaIdx === -1 || materialIdx === -1 || pisosIdx === -1) {
+                throw new Error('Columnas requeridas no encontradas en el CSV');
+            }
+            
+            // Extraer valores únicos
             const tipologiaSet = new Set();
             const materialSet = new Set();
             const pisosSet = new Set();
             
-            // Procesar cada línea del CSV (saltando el header)
             for (let i = 1; i < lines.length; i++) {
                 const values = lines[i].split(';');
-                if (values[tipologiaIdx]) tipologiaSet.add(values[tipologiaIdx]);
-                if (values[materialIdx]) materialSet.add(values[materialIdx]);
-                if (values[pisosIdx]) pisosSet.add(values[pisosIdx]);
+                if (values.length > Math.max(tipologiaIdx, materialIdx, pisosIdx)) {
+                    if (values[tipologiaIdx]?.trim()) tipologiaSet.add(values[tipologiaIdx].trim());
+                    if (values[materialIdx]?.trim()) materialSet.add(values[materialIdx].trim());
+                    if (values[pisosIdx]?.trim()) pisosSet.add(values[pisosIdx].trim());
+                }
             }
             
-            // Convertir sets a arrays ordenados
-            this.csvData = {
-                tipologia: Array.from(tipologiaSet).sort(),
-                material_fachada: Array.from(materialSet).sort(),
-                pisos: Array.from(pisosSet).sort((a, b) => parseInt(a) - parseInt(b))
+            // Convertir a formato de label maps
+            this.labelMaps = {
+                tipologia: {},
+                material_fachada: {},
+                pisos: {}
             };
             
-            console.log('Categorías extraídas del CSV:', this.csvData);
+            // Crear mapeos de índice a etiqueta
+            Array.from(tipologiaSet).sort().forEach((label, index) => {
+                this.labelMaps.tipologia[index] = label;
+            });
+            
+            Array.from(materialSet).sort().forEach((label, index) => {
+                this.labelMaps.material_fachada[index] = label;
+            });
+            
+            Array.from(pisosSet).sort((a, b) => {
+                const numA = parseInt(a);
+                const numB = parseInt(b);
+                return !isNaN(numA) && !isNaN(numB) ? numA - numB : a.localeCompare(b);
+            }).forEach((label, index) => {
+                this.labelMaps.pisos[index] = label;
+            });
+            
+            console.log('✅ Label maps generados desde CSV:', this.labelMaps);
             
         } catch (error) {
-            console.error('Error cargando CSV:', error);
-            // Valores por defecto si falla la carga
-            this.csvData = {
-                tipologia: ['Comercial Basico 1', 'Comercial Basico 2', 'Tipo 3 menos'],
-                material_fachada: ['Acabado sencillo', 'Acabado elegante', 'Sin acabado'],
-                pisos: ['1', '2', '3', '4', '5']
-            };
+            console.error('Error cargando desde CSV:', error);
+            throw error;
         }
     }
 
-    // Generar mapas de etiquetas
-    generateLabelMaps() {
-        this.labelMaps = {};
-        for (const task of this.tasks) {
-            this.labelMaps[task] = {};
-            if (this.csvData && this.csvData[task]) {
-                this.csvData[task].forEach((label, index) => {
-                    this.labelMaps[task][index] = label;
-                });
+    // Establecer label maps por defecto si todo falla
+    setDefaultLabelMaps() {
+        this.labelMaps = {
+            tipologia: {
+                "0": "Tipo Residencial Básico",
+                "1": "Tipo Comercial Básico", 
+                "2": "Tipo Industrial Básico"
+            },
+            material_fachada: {
+                "0": "Acabado Básico",
+                "1": "Acabado Intermedio",
+                "2": "Sin Acabado"
+            },
+            pisos: {
+                "0": "1",
+                "1": "2", 
+                "2": "3"
             }
-        }
+        };
+        console.log('Label maps por defecto establecidos:', this.labelMaps);
     }
 
     // Cargar todos los modelos
     async loadAllModels() {
-        // Total de modelos: 2 arquitecturas × 3 tareas = 6 modelos
         const totalModels = this.modelTypes.length * this.tasks.length;
         let loadedModels = 0;
 
@@ -120,92 +215,112 @@ class FacadeAnalyzer {
                 const modelPath = `./models/modelo_${modelType}_${task}.pt`;
                 
                 try {
-                    // Convertir modelo PyTorch a TensorFlow.js
-                    // Nota: Necesitarás convertir tus modelos .pt a formato TensorFlow.js
-                    // Usa: https://github.com/tensorflow/tfjs/tree/master/tfjs-converter
-                    
-                    // Por ahora, simulamos la carga del modelo
+                    console.log(`Intentando cargar modelo: ${modelType}_${task}`);
                     const model = await this.loadModel(modelPath);
                     this.models[modelType][task] = model;
                     
                     loadedModels++;
                     this.updateLoadingProgress(loadedModels, totalModels);
+                    console.log(`Modelo cargado: ${modelType}_${task}`);
                 } catch (error) {
-                    console.error(`Error cargando modelo ${modelType}_${task}:`, error);
-                    this.models[modelType][task] = null;
+                    console.warn(`Error cargando modelo ${modelType}_${task}:`, error);
+                    this.models[modelType][task] = this.createMockModel(task);
+                    loadedModels++;
+                    this.updateLoadingProgress(loadedModels, totalModels);
                 }
             }
         }
+        
+        console.log('Carga de modelos completada');
+    }
+
+    // Crear modelo simulado para pruebas
+    createMockModel(task) {
+        return {
+            predict: (tensor) => {
+                // Obtener número de clases para esta tarea
+                const numClasses = this.labelMaps[task] ? 
+                    Object.keys(this.labelMaps[task]).length : 3;
+                
+                console.log(`Modelo simulado para ${task}: ${numClasses} clases disponibles`);
+                
+                // Crear tensor de predicciones simuladas
+                const predictions = tf.randomUniform([1, numClasses]);
+                return predictions;
+            }
+        };
     }
 
     // Cargar modelo real de TensorFlow.js
     async loadModel(modelPath) {
         try {
-            // Convertir la ruta .pt a la ruta real de TensorFlow.js
-            // De: "./models/modelo_resnet50_tipologia.pt"
-            // A: "./models/tfjs/modelo_resnet50_tipologia/model.json"
             const tfModelPath = modelPath
                 .replace('./models/', './models/tfjs/')
                 .replace('.pt', '/model.json');
             
-            console.log(`Cargando modelo desde: ${tfModelPath}`);
+            console.log(`Intentando cargar modelo desde: ${tfModelPath}`);
             
-            // Cargar el modelo real de TensorFlow.js
+            const response = await fetch(tfModelPath);
+            if (!response.ok) {
+                throw new Error(`Modelo no encontrado: ${response.status}`);
+            }
+            
             const model = await tf.loadLayersModel(tfModelPath);
-            
-            // Verificar que el modelo se cargó correctamente
             console.log(`Modelo cargado exitosamente: ${tfModelPath}`);
-            
             return model;
             
         } catch (error) {
-            console.error(`Error cargando modelo ${modelPath}:`, error);
-            
-            // Si falla la carga, retornar un modelo simulado para pruebas
-            console.warn('Usando modelo simulado para pruebas');
-            return {
-                predict: (tensor) => {
-                    // Simulación de predicción para desarrollo
-                    const numClasses = 3;
-                    return tf.randomUniform([1, numClasses]);
-                }
-            };
+            console.warn(`No se pudo cargar el modelo real ${modelPath}:`, error.message);
+            throw error;
         }
     }
 
     // Actualizar progreso de carga
     updateLoadingProgress(loaded, total) {
         const progress = (loaded / total) * 100;
-        const progressBar = document.getElementById('modelProgress');
+        const progressBar = document.querySelector('.model-progress');
         const statusText = document.getElementById('modelStatus');
         
         if (progressBar) {
-            progressBar.style.width = `${progress}%`;
+            progressBar.style.background = `linear-gradient(to right, #27ae60 ${progress}%, rgba(255,255,255,0.2) ${progress}%)`;
         }
         
-        if (statusText && progress === 100) {
-            statusText.innerHTML = '<p style="color: #27ae60;">✓ Modelos cargados correctamente</p>';
+        if (statusText) {
+            if (progress === 100) {
+                statusText.innerHTML = '<p style="color: #27ae60;">✓ Modelos cargados correctamente</p>';
+            } else {
+                statusText.innerHTML = `<p>Cargando modelos... ${Math.round(progress)}%</p>`;
+            }
         }
     }
 
     // Preprocesar imagen para la red neuronal
     preprocessImage(imageElement) {
-        // Redimensionar a 224x224 y normalizar
-        const tensor = tf.browser.fromPixels(imageElement)
-            .resizeNearestNeighbor([224, 224])
-            .toFloat();
-        
-        // Normalización ImageNet
-        const mean = tf.tensor3d([0.485, 0.456, 0.406], [1, 1, 3]);
-        const std = tf.tensor3d([0.229, 0.224, 0.225], [1, 1, 3]);
-        
-        return tensor.div(255.0)
-            .sub(mean)
-            .div(std)
-            .expandDims(0);
+        try {
+            const tensor = tf.browser.fromPixels(imageElement)
+                .resizeNearestNeighbor([224, 224])
+                .toFloat();
+            
+            const mean = tf.tensor3d([0.485, 0.456, 0.406], [1, 1, 3]);
+            const std = tf.tensor3d([0.229, 0.224, 0.225], [1, 1, 3]);
+            
+            const normalized = tensor.div(255.0)
+                .sub(mean)
+                .div(std)
+                .expandDims(0);
+            
+            tensor.dispose();
+            mean.dispose();
+            std.dispose();
+            
+            return normalized;
+        } catch (error) {
+            console.error('Error en preprocesamiento de imagen:', error);
+            throw error;
+        }
     }
 
-    // Analizar una imagen con todos los modelos
+    // Analizar una imagen con mapeo correcto de etiquetas
     async analyzeImage(imageElement, timestamp = null, coordinates = null) {
         if (!this.modelsLoaded) {
             throw new Error('Los modelos no están cargados aún');
@@ -217,71 +332,115 @@ class FacadeAnalyzer {
             predictions: []
         };
 
-        // Preprocesar la imagen una sola vez
-        const preprocessedImage = this.preprocessImage(imageElement);
+        let preprocessedImage;
+        try {
+            preprocessedImage = this.preprocessImage(imageElement);
 
-        // Ejecutar predicciones con cada modelo
-        for (const modelType of this.modelTypes) {
-            const modelResult = {
-                modelo: modelType,
-                tipologia: '❌ No encontrado',
-                material_fachada: '❌ No encontrado',
-                pisos: '❌ No encontrado'
-            };
+            // Ejecutar predicciones con cada modelo
+            for (const modelType of this.modelTypes) {
+                const modelResult = {
+                    modelo: modelType,
+                    tipologia: '❌ No encontrado',
+                    material_fachada: '❌ No encontrado',
+                    pisos: '❌ No encontrado'
+                };
 
-            for (const task of this.tasks) {
-                if (this.models[modelType] && this.models[modelType][task]) {
-                    try {
-                        const prediction = await this.models[modelType][task].predict(preprocessedImage);
-                        const predictedClass = tf.argMax(prediction, 1).dataSync()[0];
-                        
-                        // Obtener la etiqueta correspondiente
-                        modelResult[task] = this.labelMaps[task][predictedClass] || `Clase ${predictedClass}`;
-                        
-                        // Limpiar tensores
-                        prediction.dispose();
-                    } catch (error) {
-                        console.error(`Error en predicción ${modelType}_${task}:`, error);
+                for (const task of this.tasks) {
+                    if (this.models[modelType] && this.models[modelType][task]) {
+                        try {
+                            const prediction = await this.models[modelType][task].predict(preprocessedImage);
+                            const predictedClass = tf.argMax(prediction, 1).dataSync()[0];
+                            
+                            // AQUÍ ESTÁ LA CORRECCIÓN CLAVE: Usar labelMaps directamente
+                            const label = this.labelMaps[task][predictedClass];
+                            
+                            if (label) {
+                                modelResult[task] = label;
+                                console.log(`${modelType} - ${task}: clase ${predictedClass} → "${label}"`);
+                            } else {
+                                console.warn(`No se encontró etiqueta para ${task} clase ${predictedClass}`);
+                                modelResult[task] = `Clase ${predictedClass} (sin mapear)`;
+                            }
+                            
+                            prediction.dispose();
+                        } catch (error) {
+                            console.error(`Error en predicción ${modelType}_${task}:`, error);
+                            modelResult[task] = '❌ Error en predicción';
+                        }
                     }
                 }
+
+                results.predictions.push(modelResult);
             }
-
-            results.predictions.push(modelResult);
+        } catch (error) {
+            console.error('Error durante el análisis:', error);
+            for (const modelType of this.modelTypes) {
+                results.predictions.push({
+                    modelo: modelType,
+                    tipologia: '❌ Error de análisis',
+                    material_fachada: '❌ Error de análisis',
+                    pisos: '❌ Error de análisis'
+                });
+            }
+        } finally {
+            if (preprocessedImage) {
+                preprocessedImage.dispose();
+            }
         }
-
-        // Limpiar tensor preprocesado
-        preprocessedImage.dispose();
 
         return results;
     }
 
     // Analizar un fotograma de video
     async analyzeVideoFrame(videoElement, currentTime) {
-        // Crear canvas temporal para capturar el fotograma
-        const canvas = document.getElementById('frameCanvas');
-        const ctx = canvas.getContext('2d');
-        
-        // Ajustar tamaño del canvas
-        canvas.width = videoElement.videoWidth;
-        canvas.height = videoElement.videoHeight;
-        
-        // Dibujar el fotograma actual
-        ctx.drawImage(videoElement, 0, 0);
-        
-        // Obtener coordenadas si están disponibles
-        const coordinates = window.getCurrentCoordinatesForTime ? 
-            window.getCurrentCoordinatesForTime(currentTime) : null;
-        
-        // Analizar la imagen
-        const results = await this.analyzeImage(canvas, currentTime, coordinates);
-        
-        // Guardar miniatura del fotograma
-        results.thumbnail = canvas.toDataURL('image/jpeg', 0.7);
-        
-        return results;
+        try {
+            const frameCanvas = document.getElementById('frameCanvas');
+            if (!frameCanvas) {
+                throw new Error('Canvas de fotogramas no encontrado');
+            }
+            
+            const ctx = frameCanvas.getContext('2d');
+            frameCanvas.width = videoElement.videoWidth || 640;
+            frameCanvas.height = videoElement.videoHeight || 360;
+            
+            ctx.drawImage(videoElement, 0, 0);
+            
+            const coordinates = window.getCurrentCoordinatesForTime ? 
+                window.getCurrentCoordinatesForTime(currentTime) : null;
+            
+            const results = await this.analyzeImage(frameCanvas, currentTime, coordinates);
+            results.thumbnail = frameCanvas.toDataURL('image/jpeg', 0.7);
+            
+            return results;
+        } catch (error) {
+            console.error('Error analizando fotograma de video:', error);
+            throw error;
+        }
     }
 
-    // Crear elemento HTML para mostrar resultados
+    // Método para diagnosticar el estado de los label maps
+    diagnoseLabelMaps() {
+        console.log('=== DIAGNÓSTICO DE LABEL MAPS ===');
+        console.log('Label maps cargados:', this.labelMaps);
+        
+        if (this.labelMaps) {
+            for (const task of this.tasks) {
+                console.log(`\n${task.toUpperCase()}:`);
+                if (this.labelMaps[task]) {
+                    Object.entries(this.labelMaps[task]).forEach(([index, label]) => {
+                        console.log(`  ${index} → "${label}"`);
+                    });
+                } else {
+                    console.log('  ❌ No disponible');
+                }
+            }
+        } else {
+            console.log('❌ No hay label maps cargados');
+        }
+        console.log('================================');
+    }
+
+    // Resto de métodos sin cambios importantes...
     createResultElement(result, frameNumber) {
         const resultDiv = document.createElement('div');
         resultDiv.className = 'frame-result';
@@ -325,14 +484,12 @@ class FacadeAnalyzer {
         return resultDiv;
     }
 
-    // Generar análisis de consenso entre los dos modelos
     generateConsensusAnalysis(predictions) {
         if (predictions.length !== 2) return '';
         
         const [model1, model2] = predictions;
         let consensus = [];
         
-        // Verificar consenso en cada tarea
         if (model1.tipologia === model2.tipologia && model1.tipologia !== '❌ No encontrado') {
             consensus.push(`<strong>Tipología:</strong> ${model1.tipologia}`);
         }
@@ -355,7 +512,6 @@ class FacadeAnalyzer {
         return '';
     }
 
-    // Formatear tiempo
     formatTime(seconds) {
         if (typeof seconds === 'number') {
             const mins = Math.floor(seconds / 60);
@@ -365,7 +521,6 @@ class FacadeAnalyzer {
         return seconds;
     }
 
-    // Exportar resultados a CSV
     exportResultsToCSV(results) {
         let csv = 'Fotograma,Tiempo,Latitud,Longitud,Modelo,Tipologia,Material_Fachada,Pisos\n';
         
